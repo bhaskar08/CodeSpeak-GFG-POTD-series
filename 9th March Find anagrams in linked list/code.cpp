@@ -14,93 +14,86 @@ printList(Node* node);
 
 class Solution {
   public:
-  bool checkAnagram(vector<int>freq,vector<int>temp_freq)
-  {
-      for(int i=0;i<26; i++)
-      {
-          if(freq[i]!=temp_freq[i])
-          {
-              return false;
-          }
-      }
-      
-      return true;
-  }
-  
-  void actionForAnagrams(Node* &ptr1, Node* &ptr2, int len, vector<Node*>&ans, vector<int>&temp_freq)
-  {
-      ans.push_back(ptr1);
-      Node* temp=ptr2;
-      ptr2=ptr2->next;
-      ptr1=ptr2;
-      temp->next=NULL;
-      
-      for(int i=0;i<26; i++)temp_freq[i]=0;
-      
-      Node* prev=NULL;
-        for(int i=0;i<len && ptr2; i++)
+    
+    bool isAnagram(vector<int> &freq, vector<int> &tempFreq)
+    {
+        return freq == tempFreq;
+    }
+    
+    void handleAnagram(Node* &ptr1, Node* &ptr2,vector<int> &tempFreq, vector<Node *> &ans, int len)
+    {
+        ans.push_back(ptr1);
+        
+        Node *temp = ptr2;
+        ptr2 = ptr2->next;
+        temp->next = NULL;
+        
+        ptr1 = ptr2; //window shift
+        
+        for(int i=0; i<26; i++)
         {
-            temp_freq[ptr2->data-'a']++;
-            prev=ptr2;
-            ptr2=ptr2->next;
-            
+            tempFreq[i] = 0;
         }
         
-        ptr2=prev;
-      
-      
-  }
+        
+        
+        Node *prev = NULL;
+        for(int i=0; i<len && ptr2 != NULL; i++)
+        {
+            tempFreq[ptr2->data - 'a']++;
+            prev = ptr2;
+            ptr2 = ptr2->next;
+        }
+        ptr2 = prev;
+    }
     vector<Node*> findAnagrams(struct Node* head, string s) {
         // code here
-        vector<int>freq(26,0);
         
-        int len=s.size();
-        for(int i=0;i<len; i++)
+        vector<Node*> ans;
+        
+        Node *ptr1 = head, *ptr2 = head;
+        int len = s.size();
+        
+        
+        vector<int> freq(26,0); //freq of characters of string s
+        vector<int> tempFreq(26,0); //freq of chars from linked list
+        
+        for(int i=0; i<len; i++)
         {
-            freq[s[i]-'a']++;
+            freq[s[i] - 'a']++;
         }
         
-        Node* ptr1=head;
-        Node* ptr2=head;
-        
-        Node* prev=NULL;
-        vector<int>temp_freq(26,0);
-        for(int i=0;i<len && ptr2; i++)
+        //first n (size of s) chars of linked list
+        Node *prev = NULL;
+        for(int i=0; i<len && ptr2 != NULL; i++)
         {
-            temp_freq[ptr2->data-'a']++;
-            prev=ptr2;
-            ptr2=ptr2->next;
+            tempFreq[ptr2->data - 'a']++;
+            prev = ptr2;
+            ptr2 = ptr2->next;
+        }
+        ptr2 = prev;
+        
+        while(ptr2 != NULL)
+        {
+            bool check = isAnagram(freq,tempFreq);
             
-        }
-        
-        ptr2=prev;
-        
-        vector<Node*>ans;
-        
-        while(ptr2->next!=NULL)
-        {
-            bool check=checkAnagram(freq,temp_freq);
-            if(check)
+            if(check == true) //it is anagram - store ans and window shift
             {
-            
-                actionForAnagrams(ptr1,ptr2,len,ans,temp_freq);
+                handleAnagram(ptr1,ptr2,tempFreq,ans,len);
             }
             else
             {
-                temp_freq[ptr1->data-'a']--;
-                ptr1=ptr1->next;
-                ptr2=ptr2->next;
-                temp_freq[ptr2->data-'a']++;
+                //not anagram - move pointers
+                tempFreq[ptr1->data - 'a']--;
+                ptr1 = ptr1->next;
+                
+                ptr2 = ptr2->next;
+                
+                if(ptr2 != NULL) tempFreq[ptr2->data - 'a']++;
             }
         }
         
-        bool check=checkAnagram(freq,temp_freq);
-        
-        if(check)
-        {
-            ans.push_back(ptr1);
-        }
-        
         return ans;
+        
     }
 };
